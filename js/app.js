@@ -53,10 +53,10 @@
             return result;
         }
 
-        // Episodes must be completed sequentially.
-        for (const episode of episodes) {
-            if (data.completed.includes(episode.number)) {
-                result.completed.push(episode.number);
+        // Only even-numbered episodes are quiz checkpoints.
+        for (const number of [2, 4, 6, 8]) {
+            if (data.completed.includes(number)) {
+                result.completed.push(number);
             } else {
                 break;
             }
@@ -245,13 +245,18 @@
     }
 
     function isUnlocked(number) {
-        return number <= completedCount() + 1;
+        const completed = readProgress().completed;
+        const lastCheckpoint = completed.length
+            ? completed[completed.length - 1]
+            : 0;
+
+        return number <= lastCheckpoint + 2;
     }
 
     function completeEpisode(number, score) {
         const progress = readProgress();
 
-        if (!isUnlocked(number)) {
+        if (!isUnlocked(number) || number % 2 !== 0) {
             return false;
         }
 
@@ -295,11 +300,11 @@
         const progress = readProgress();
 
         label.textContent =
-            `${progress.completed.length} of ${episodes.length} episodes completed`;
+            `${progress.completed.length} of ${episodes.length / 2} assessments completed`;
 
         if (progressFill) {
             progressFill.style.width =
-                `${progress.completed.length / episodes.length * 100}%`;
+                `${progress.completed.length / (episodes.length / 2) * 100}%`;
         }
 
         grid.replaceChildren();
@@ -472,6 +477,18 @@
             "← Previous Episode"
         );
 
+        // Odd episodes do not have an assessment; readers can continue to
+        // the next episode in the current pair without submitting a quiz.
+        if (episode.number % 2 !== 0) {
+            setNavigationLink(
+                $("nextEpisode"),
+                next ? `reader.html?episode=${next.number}` : null,
+                next ? "Next Episode →" : "Return to Episodes"
+            );
+
+            return;
+        }
+
         if (!isCompleted(episode.number)) {
             setNavigationLink(
                 $("nextEpisode"),
@@ -558,20 +575,23 @@
             );
         }
 
-        const quiz = bank.episodes.find(function (entry) {
-            return entry.episode === episodeNumber;
-        });
+        if (episodeNumber % 2 !== 0) {
+            throw new Error(
+                `The assessment is available after Episode ${episodeNumber + 1}.`
+            );
+        }
+
+        const quiz = bank.episodes.find((entry) => entry.episode === episodeNumber);
 
         if (!quiz) {
-            throw new Error(
-                `No questions found for Episode ${episodeNumber}.`
-            );
+            throw new Error(`No questions found for Episodes ${episodeNumber - 1}-${episodeNumber}.`);
         }
 
         const allowedTypes = [
             "multiple-choice",
             "true-false",
-            "matching"
+            "matching",
+            "mixed"
         ];
 
         if (!allowedTypes.includes(quiz.type)) {
@@ -827,15 +847,19 @@
         });
 
         // RIGHT SIDE: SHUFFLED ANSWERS
-        const shuffled = shuffle(quiz.questions);
+        const shuffled = [...quiz.questions].sort(function (a, b) {
+            return a.correctAnswer.localeCompare(b.correctAnswer);
+        });
 
-        shuffled.forEach(function (question, index) {
+        shuffled.forEach(function (question) {
             const id = String(question.id);
-            const letter = String.fromCharCode(65 + index);
+            // Preserve the source answer-key label (A-E) even when the
+            // answer cards are shuffled visually.
+            const letter = question.correctAnswer;
 
             const record = makeMatchButton(
                 letter,
-                question.correctAnswer
+                question.answer || question.correctAnswer
             );
 
             record.letter = letter;
@@ -1004,7 +1028,7 @@
 
             instructions.textContent =
                 "Click a statement on the left, then its answer " +
-                `on the right. ${assignments.size}/10 pairs matched.`;
+                `on the right. ${assignments.size}/${quiz.questions.length} pairs matched.`;
 
             window.requestAnimationFrame(drawLines);
         }
@@ -1035,12 +1059,26 @@
             quiz.questions.forEach(function (question) {
                 const id = String(question.id);
 
-                if (matchingAnswers.get(id) === id) {
+                if (matchingAnswers.has(id) && matchingAnswers.get(id) === id) {
                     score++;
                 }
             });
 
             return { answered, score };
+        }
+
+        if (quiz.type === "mixed" && matchingAnswers) {
+            answered = matchingAnswers.size;
+
+            quiz.questions
+                .filter((question) => (question.type || quiz.type) === "matching")
+                .forEach(function (question) {
+                    const id = String(question.id);
+
+                    if (matchingAnswers.has(id) && matchingAnswers.get(id) === id) {
+                        score++;
+                    }
+                });
         }
 
         quiz.questions.forEach(function (question, index) {
@@ -1054,13 +1092,15 @@
 
             answered++;
 
-            if (quiz.type === "multiple-choice") {
+            const questionType = question.type || quiz.type;
+
+            if (questionType === "multiple-choice") {
                 if (selected.value === question.correctAnswer) {
                     score++;
                 }
             }
 
-            if (quiz.type === "true-false") {
+            if (questionType === "true-false") {
                 const value = selected.value === "True";
 
                 if (value === question.correctAnswer) {
@@ -1088,12 +1128,13 @@
         result.classList.remove("is-error");
 
         $("quizTitle").textContent =
-            `${episode.title} Quiz`;
+            `Episodes ${episode.number - 1}-${episode.number} Assessment`;
 
         const typeNames = {
             "multiple-choice": "Multiple Choice",
             "true-false": "True or False",
-            "matching": "Matching Type"
+            "matching": "Matching Type",
+            "mixed": "Multiple Choice and Matching"
         };
 
         $("quizType").textContent =
@@ -1106,13 +1147,35 @@
                 quiz,
                 container
             );
+        } else if (quiz.type === "mixed") {
+            const choiceQuestions = quiz.questions.filter(
+                (question) => question.type !== "matching"
+            );
+            const matchingQuestions = quiz.questions.filter(
+                (question) => question.type === "matching"
+            );
+
+            choiceQuestions.forEach(function (question, index) {
+                container.appendChild(
+                    createChoiceQuestion(
+                        question,
+                        quiz.questions.indexOf(question),
+                        question.type
+                    )
+                );
+            });
+
+            matchingAnswers = renderMatchingQuiz(
+                { questions: matchingQuestions },
+                container
+            );
         } else {
             quiz.questions.forEach(function (question, index) {
                 container.appendChild(
                     createChoiceQuestion(
                         question,
                         index,
-                        quiz.type
+                        question.type || quiz.type
                     )
                 );
             });
@@ -1124,7 +1187,17 @@
                 matchingAnswers
             );
 
-            if (!isCompleted(episode.number)) {
+        if (episode.number % 2 !== 0) {
+            setNavigationLink(
+                $("nextEpisode"),
+                next ? `reader.html?episode=${next.number}` : null,
+                next ? "Next Episode →" : "Return to Episodes"
+            );
+
+            return;
+        }
+
+        if (!isCompleted(episode.number)) {
                 setQuizStatus(
                     `${grading.answered}/10 answers completed. ` +
                     "Answer all questions to continue."
@@ -1192,7 +1265,7 @@
 
             if (episodeIndex < episodes.length - 1) {
                 message +=
-                    `Episode ${episode.number + 1} is now unlocked.`;
+                    `Episodes ${episode.number + 1} and ${episode.number + 2} are now unlocked.`;
             } else {
                 message +=
                     "Congratulations! You completed Cell Quest.";
@@ -1222,6 +1295,17 @@
     // ==========================================
 
     function loadQuiz(episode, episodeIndex) {
+        if (episode.number % 2 !== 0) {
+            $("quizForm").hidden = true;
+            $("quizTitle").textContent = `Episodes ${episode.number}-${episode.number + 1} Assessment`;
+            $("quizType").textContent = "Available after the pair";
+            setQuizStatus(
+                `Read Episode ${episode.number + 1} to unlock the combined assessment.`,
+                "success"
+            );
+            return;
+        }
+
         try {
             const quiz = validateQuiz(episode.number);
 
