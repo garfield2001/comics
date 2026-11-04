@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#172554" />
+
+    <title>Cell Quest | The Tiny Adventure</title>
+
+    <link rel="stylesheet" href="css/comic-quiz.css" />
+  </head>
+
+  <body class="home-page">
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#home"> Cell Quest </a>
+
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="#about">About</a>
+          <a href="#episodes">Episodes</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="home">
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Interactive Comic Reading Activity</p>
+
+          <h1>
+            Enter the world of
+            <em>Cell Quest.</em>
+          </h1>
+
+          <p class="hero-text">
+            Follow The Tiny Adventure across eight exciting episodes. Read each
+            chapter, answer the questions, and unlock the next part of the
+            story.
+          </p>
+
+          <a class="primary-action" href="#episodes">
+            Start Adventure
+            <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+
+        <div class="hero-mark" aria-hidden="true">
+          <span>Cell</span>
+          <strong>Quest</strong>
+          <i>The Tiny Adventure</i>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+      <section class="about" id="about" aria-labelledby="about-title">
+        <p class="eyebrow">The Reading Room</p>
+
+        <div>
+          <h2 id="about-title">One Story. Eight Episodes.</h2>
+
+          <p>
+            Discover the world of Cell Quest through an interactive comic
+            adventure. Each episode includes ten questions to help you reflect
+            on what you have read. Complete the assessment to unlock the next
+            episode and continue your journey.
+          </p>
+        </div>
+      </section>
+
+      <!-- EPISODES -->
+      <section
+        class="episode-section"
+        id="episodes"
+        aria-labelledby="episodes-title"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Your Adventure</p>
+
+            <h2 id="episodes-title">Choose an Episode.</h2>
+          </div>
+
+          <p id="progressLabel" class="progress-label" aria-live="polite">
+            Loading progress...
+          </p>
+        </div>
+
+        <div class="progress-track" aria-hidden="true">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+
+        <p class="episode-help">
+          Complete an episode's quiz to unlock the next chapter.
+        </p>
+
+        <ol
+          class="episode-grid"
+          id="episodeGrid"
+          aria-label="Cell Quest episodes"
+        ></ol>
+
+        <p id="storageWarning" class="storage-warning" role="status" hidden></p>
+      </section>
+    </main>
+
+    <footer class="site-footer">Cell Quest · The Tiny Adventure</footer>
+
+    <script src="js/app-config.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

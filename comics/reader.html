@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#172554" />
+
+    <title>Cell Quest | Comic Reader</title>
+
+    <link rel="stylesheet" href="../css/comic-quiz.css" />
+  </head>
+
+  <body class="reader-page">
+    <!-- READER HEADER -->
+    <header class="reader-header" id="readerHeader">
+      <a class="brand" href="../index.html">
+        ← Cell Quest
+        <span>The Tiny Adventure</span>
+      </a>
+
+      <p id="readerProgress" class="reader-progress">Episode 1 / 8</p>
+    </header>
+
+    <main class="reader-layout">
+      <!-- SIDEBAR -->
+      <aside class="episode-sidebar" aria-label="Episode navigation">
+        <p class="eyebrow">Episodes</p>
+
+        <ol id="episodeNav" class="episode-nav"></ol>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <section class="reader-content" aria-labelledby="readerTitle">
+        <div class="reader-title-row">
+          <div>
+            <p class="eyebrow">The Tiny Adventure</p>
+
+            <h1 id="readerTitle">Episode 1</h1>
+          </div>
+
+          <div class="reader-actions">
+            <a href="../index.html#episodes" class="text-action">
+              All Episodes
+            </a>
+
+            <button
+              type="button"
+              id="readerModeToggle"
+              class="reader-mode-toggle"
+              aria-pressed="false"
+            >
+              Focus Reader
+            </button>
+          </div>
+        </div>
+
+        <!-- COMIC PAGES -->
+        <div id="comicPages" class="comic-pages" aria-label="Comic pages"></div>
+
+        <!-- EPISODE QUIZ -->
+        <section
+          id="quizSection"
+          class="quiz-panel"
+          aria-labelledby="quizTitle"
+        >
+          <div class="quiz-heading">
+            <p class="eyebrow">Episode Assessment</p>
+
+            <h2 id="quizTitle">Episode Quiz</h2>
+
+            <span id="quizType" class="quiz-type-badge"> 10 Questions </span>
+
+            <p class="quiz-description">
+              Answer all ten questions to unlock the next episode. Your score
+              will appear after submitting.
+            </p>
+          </div>
+
+          <p
+            id="quizStatus"
+            class="quiz-status"
+            role="status"
+            aria-live="polite"
+          >
+            Preparing your questions...
+          </p>
+
+          <form id="quizForm" novalidate hidden>
+            <div id="quizContainer"></div>
+
+            <div class="quiz-footer">
+              <button
+                type="submit"
+                id="submitQuiz"
+                class="primary-action quiz-submit"
+              >
+                Submit Answers
+              </button>
+
+              <p
+                id="quizResult"
+                class="quiz-result"
+                role="status"
+                aria-live="polite"
+              ></p>
+            </div>
+          </form>
+        </section>
+
+        <!-- EPISODE CONTROLS -->
+        <nav class="episode-controls" aria-label="Episode controls">
+          <a
+            id="previousEpisode"
+            class="button-secondary is-disabled"
+            aria-disabled="true"
+          >
+            ← Previous Episode
+          </a>
+
+          <a
+            id="nextEpisode"
+            class="primary-action is-disabled"
+            aria-disabled="true"
+          >
+            Complete Quiz to Continue
+          </a>
+        </nav>
+
+        <p id="storageWarning" class="storage-warning" role="status" hidden></p>
+      </section>
+    </main>
+
+    <script src="../js/app-config.js"></script>
+    <script src="../data/questions.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>
