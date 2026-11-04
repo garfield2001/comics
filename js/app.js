@@ -168,6 +168,44 @@
         return persisted;
     }
 
+    function resetProgress() {
+        memoryProgress = emptyProgress();
+
+        if (storageAvailable) {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (error) {
+                console.warn("Unable to clear local progress.", error);
+            }
+        }
+
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete(URL_PROGRESS_KEY);
+            window.history.replaceState(null, "", url.href);
+        } catch (error) {
+            console.warn("Could not clear progress from the URL.", error);
+        }
+    }
+
+    function setupResetControl() {
+        const resetButton = $("resetProgress");
+
+        if (!resetButton) {
+            return;
+        }
+
+        resetButton.addEventListener("click", function () {
+            if (!window.confirm("Reset your Cell Quest journey? All episodes will be locked again.")) {
+                return;
+            }
+
+            resetProgress();
+            renderLanding();
+            window.location.hash = "episodes";
+        });
+    }
+
     function withProgress(href) {
         const parts = href.split("#");
         const beforeHash = parts[0];
@@ -1337,6 +1375,7 @@
     if (document.body.classList.contains("reader-page")) {
         renderReader();
     } else {
+        setupResetControl();
         renderLanding();
     }
 

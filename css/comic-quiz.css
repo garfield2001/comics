@@ -414,11 +414,20 @@ a.episode-card:hover {
 ======================================== */
 
 .site-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
     padding: 28px 20px;
     border-top: 1px solid var(--line);
     color: var(--muted);
     font-size: 0.85rem;
     text-align: center;
+}
+
+.site-footer .button-secondary {
+    padding: 8px 14px;
+    font-size: 0.85rem;
 }
 
 /* ========================================
